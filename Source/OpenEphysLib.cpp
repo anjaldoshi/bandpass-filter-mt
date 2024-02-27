@@ -2,7 +2,7 @@
 ------------------------------------------------------------------
 
 This file is part of the Open Ephys GUI
-Copyright (C) 2022 Open Ephys
+Copyright (C) 2013 Open Ephys
 
 ------------------------------------------------------------------
 
@@ -18,14 +18,13 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 */
 
 #include <PluginInfo.h>
-
-#include "ProcessorPlugin.h"
+#include "FilterNode.h"
 #include <string>
-
-#ifdef WIN32
+#ifdef _WIN32
 #include <Windows.h>
 #define EXPORT __declspec(dllexport)
 #else
@@ -33,17 +32,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 using namespace Plugin;
-
 #define NUM_PLUGINS 1
 
 extern "C" EXPORT void getLibInfo(Plugin::LibraryInfo* info)
 {
-	/* API version, defined by the GUI source.
-	Should not be changed to ensure it is always equal to the one used in the latest codebase.
-	The GUI refueses to load plugins with mismatched API versions */
 	info->apiVersion = PLUGIN_API_VER;
-	info->name = "Plugin Library Name"; // <---- update
-	info->libVersion = "0.1.0"; // <---- update
+	info->name = "Bandpass Filter MT";
+	info->libVersion = "0.6.0";
 	info->numPlugins = NUM_PLUGINS;
 }
 
@@ -51,19 +46,11 @@ extern "C" EXPORT int getPluginInfo(int index, Plugin::PluginInfo* info)
 {
 	switch (index)
 	{
-		//one case per plugin. This example is for a processor which connects directly to the signal chain
 	case 0:
-		//Type of plugin. See "Source/Processors/PluginManager/OpenEphysPlugin.h" for complete info about the different type structures
-		info->type = Plugin::Type::PROCESSOR;
-
-		//Processor name
-		info->processor.name = "Plugin Name"; //Processor name shown in the GUI
-
-		//Type of processor. Can be FILTER, SOURCE, SINK or UTILITY. Specifies where on the processor list will appear
-		info->processor.type = Processor::Type::FILTER;
-
-		//Class factory pointer. Replace "ProcessorPluginSpace::ProcessorPlugin" with the namespace and class name.
-		info->processor.creator = &(Plugin::createProcessor<ProcessorPlugin>);
+		info->type = Plugin::PROCESSOR;
+		info->processor.name = "Bandpass Filter MT";
+		info->processor.type = Plugin::Processor::FILTER;
+		info->processor.creator = &(Plugin::createProcessor<FilterNode>);
 		break;
 	default:
 		return -1;
@@ -72,7 +59,7 @@ extern "C" EXPORT int getPluginInfo(int index, Plugin::PluginInfo* info)
 	return 0;
 }
 
-#ifdef WIN32
+#ifdef _WIN32
 BOOL WINAPI DllMain(IN HINSTANCE hDllHandle,
 	IN DWORD     nReason,
 	IN LPVOID    Reserved)
