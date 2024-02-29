@@ -102,13 +102,15 @@ public:
     /** Called when upstream settings are changed.*/
     void updateSettings() override;
 
+    bool startAcquisition() override;
+
+    bool stopAcquisition() override;
+
 private:
 
     StreamSettings<BandpassFilterSettings> settings;
 
-    void setFilterParameters (double, double, int);
-
-    ThreadPool threadPool;
+    std::unique_ptr<ThreadPool> threadPool;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FilterNode);
 };

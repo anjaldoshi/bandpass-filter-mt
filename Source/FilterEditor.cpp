@@ -26,10 +26,10 @@
 
 FilterEditor::FilterEditor(GenericProcessor* parentNode) : GenericEditor(parentNode)
 {
-    desiredWidth = 150;
+    desiredWidth = 200;
 
-    addTextBoxParameterEditor("low_cut", 10, 22);
-    addTextBoxParameterEditor("high_cut", 10, 62);
-    addMaskChannelsParameterEditor("Channels", 10, 108);
-
+    addTextBoxParameterEditor("low_cut", 10, 30);
+    addTextBoxParameterEditor("high_cut", 10, 75);
+    addMaskChannelsParameterEditor("Channels", 105, 45);
+    addComboBoxParameterEditor("Threads", 105, 75);
 }

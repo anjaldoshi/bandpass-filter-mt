@@ -88,12 +88,17 @@ ThreadPoolJob::JobStatus FilterJob::runJob()
 
 
 FilterNode::FilterNode()
-    : GenericProcessor  ("Bandpass Filter")
+    : GenericProcessor  ("Bandpass Filter MT")
 {
 
     addFloatParameter(Parameter::STREAM_SCOPE, "high_cut", "Filter high cut", 6000, 0.1, 15000, false);
     addFloatParameter(Parameter::STREAM_SCOPE, "low_cut", "Filter low cut", 300, 0.1, 15000, false);
     addMaskChannelsParameter(Parameter::STREAM_SCOPE, "Channels", "Channels to filter for this stream");
+
+    StringArray numThreads { "2", "4", "8", "16", "32", "64"};
+    addCategoricalParameter(Parameter::GLOBAL_SCOPE, "Threads", "Number of threads to use for filtering", numThreads, 2, true);
+
+    threadPool = std::make_unique<ThreadPool>(8);
 
 }
 
@@ -212,6 +217,29 @@ void FilterNode::parameterValueChanged(Parameter* param)
             (*getDataStream(currentStream))["high_cut"]
         );
     }
+    else if (param->getName().equalsIgnoreCase("Threads"))
+    {
+        if (threadPool->getNumJobs() > 0)
+        {
+            param->restorePreviousValue();
+            return;
+        }
+
+        int numThreads = param->getValueAsString().getIntValue();
+        threadPool.reset(new ThreadPool(numThreads));
+    }
+
+}
+
+bool FilterNode::startAcquisition()
+{
+    LOGC ("Bandpass Filter MT starting with ", threadPool->getNumThreads(), " threads");
+    return true;
+}
+
+bool FilterNode::stopAcquisition()
+{
+    return threadPool->removeAllJobs(true, 2000);
 }
 
 
@@ -246,7 +274,7 @@ void FilterNode::process (AudioBuffer<float>& buffer)
 
                     FilterJob* job = new FilterJob(jobName, filters, channelPointers, numSamples);
 
-                    threadPool.addJob(job, true);
+                    threadPool->addJob(job, true);
 
                     channelPointers.clear();
                     filters.clear();
@@ -259,12 +287,12 @@ void FilterNode::process (AudioBuffer<float>& buffer)
 
                 FilterJob* job = new FilterJob(jobName, filters, channelPointers, numSamples);
 
-                threadPool.addJob(job, true);
+                threadPool->addJob(job, true);
             }
         }
     }
 
-    while (threadPool.getNumJobs() > 0)
+    while (threadPool->getNumJobs() > 0)
         std::this_thread::sleep_for(std::chrono::microseconds(50));
 }
 
