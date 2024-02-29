@@ -21,6 +21,7 @@
 */
 
 #include <stdio.h>
+#include <thread>
 
 #include "FilterNode.h"
 #include "FilterEditor.h"
@@ -96,7 +97,7 @@ FilterNode::FilterNode()
     addMaskChannelsParameter(Parameter::STREAM_SCOPE, "Channels", "Channels to filter for this stream");
 
     StringArray numThreads { "2", "4", "8", "16", "32", "64"};
-    addCategoricalParameter(Parameter::GLOBAL_SCOPE, "Threads", "Number of threads to use for filtering", numThreads, 2, true);
+    addCategoricalParameter(Parameter::GLOBAL_SCOPE, "Threads", "Number of threads to use for filtering", numThreads, 1, true);
 
     threadPool = std::make_unique<ThreadPool>(8);
 
